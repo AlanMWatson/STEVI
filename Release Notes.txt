@@ -1,16 +1,25 @@
-Release Notes for STIVI: STat Expression with Virus Infection
+Release Notes for STEVI: STat Expression with Virus Infection
 
 
 Version: 0.1001
-Filename - STIVI_0_1001.R
+Filename - STEVI_0_1001.R
+Filename - STEVI_0_1001_multicore.R
 
 Change log:
 
 1).  All data is now organized and exported into a single data.frame (imageDat) and saved as imageDat.csv.  A treatment column is included for future use to provide for easy differntiation between mock images and infected images.  Currently all treatment values are NA.
 
-2).  statQuant was changed to place cell subsets into vectors in order to calculate the mean and sums of STAT and YFV expression in cells this cuts matrix and image subsetting by 2/3 and speeds up the processing.
+2).  statQuant() was changed to place cell subsets into vectors in order to calculate the mean and sums of STAT and YFV expression in cells this cuts matrix and image subsetting by 2/3 and speeds up the processing.
 
 3).  loadDataFiles was changed to load imageDat.csv and characterize the colums as factor for imagenum, treatment, infected and numeric for all others.
+
+4).  	A. - The multicore version will utilize as many cores as image sets being processed, up to the total number of logical processors available the computer.  This can cut the processing time for statQuant() to about half.  
+
+	B. - BE CAREFUL:  This will utilize large amounts of RAM which scales with the number of logical processors that your computer has available.  I have tested it for up to 9 image sets and 9 cores (each image was the size of the practice images that are supplied with the distribution).  9 images processed on 9 cores uses as much as 15GB of RAM.  
+
+	C. - Future releases will provide a single script in which the number of processing cores can be specified prior to running the analysis.
+
+-------------------------------------------------------------------------------------------------------------------
 
 Version: 0.1000
 Filename - Cell Counting and Overlay Clean Output.R
