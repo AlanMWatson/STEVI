@@ -1,0 +1,16 @@
+Release Notes for STIVI: STat Expression with Virus Infection
+
+
+Version: 0.1001
+Filename - STIVI_0_1001.R
+
+Change log:
+
+1).  All data is now organized and exported into a single data.frame (imageDat) and saved as imageDat.csv.  A treatment column is included for future use to provide for easy differntiation between mock images and infected images.  Currently all treatment values are NA.
+
+2).  statQuant was changed to place cell subsets into vectors in order to calculate the mean and sums of STAT and YFV expression in cells this cuts matrix and image subsetting by 2/3 and speeds up the processing.
+
+3).  loadDataFiles was changed to load imageDat.csv and characterize the colums as factor for imagenum, treatment, infected and numeric for all others.
+
+Version: 0.1000
+Filename - Cell Counting and Overlay Clean Output.R

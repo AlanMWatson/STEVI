@@ -1,4 +1,7 @@
-
+################################################################
+##  STIVI (STat Expression with Virus Infection) Ver: 0.1001  ##
+##  2014-08-12 AMW                                            ##
+################################################################
 
 
 loadImages <- function(fullMonty = FALSE, count=FALSE, outline=FALSE, colocalization=FALSE, overlay=FALSE, ...){
@@ -34,7 +37,8 @@ loadImages <- function(fullMonty = FALSE, count=FALSE, outline=FALSE, colocaliza
                     overlay(...)
           }
           
-          statQuant(...)
+          quant <- system.time(statQuant(...))
+          print(quant)
           
 #           exportIndCells(...)
 #           
@@ -391,7 +395,10 @@ overlay <- function(writeimage=FALSE, writereport=FALSE, ...){
 }
 
 
-## Record data about individual cells
+##################################################################################################################
+##  This function is dependant on images created in the previous outlinecells and countnucleus functions        ##
+##  Meant to be called only my loadImages()                                                                     ##
+##################################################################################################################
 
 statQuant <- function(hipassQuant = FALSE, ...){
           
@@ -399,64 +406,14 @@ statQuant <- function(hipassQuant = FALSE, ...){
           
           
           totalCell <- sum(cell != "NA", na.rm = TRUE)
-          imageDat <<- matrix(nrow = totalCell, ncol = 11)
+          imageDat <<- matrix(nrow = totalCell, ncol = 9)
           imageDatColNames <- c("imagenum", "treatment", "cell.number", "infected", "stat.mean", "stat.sum", "yfv.mean", 
-                                 "yfv.sum", "cell.pixel.area", "stat.per.area", "yfv.per.area")
+                                 "yfv.sum", "cell.pixel.area")
           colnames(imageDat) <<- imageDatColNames
           imageDat <<- as.data.frame(imageDat)
           imgeNum <- ncol(cell)
           
           
-#           imageCol <- imageNum*4
-#           imageCol2 <- imageNum*2
-#           imageCol3 <- imageNum*3
-#           rows <- nrow(cell)
-#           expressionInfected <<- matrix(ncol=imageCol, nrow=rows)
-#           expressionMeans <<- matrix(ncol=imageCol2, nrow=rows)
-#           expressionSums <<- matrix(ncol=imageCol2, nrow=rows)
-#           expressionArea <<- matrix(ncol=imageCol3, nrow=rows)
-#           colNames <<- character()
-#           colMean <<- character()
-#           colSum <<- character()
-#           colArea <<- character()
-#           for(a in 1:imageNum){
-#                     
-#                     l <- length(colNames)
-#                     m <- length(colMean)
-#                     s <- length(colSum)
-#                     z <- length(colArea)
-#                     
-#                     colNames[l+1] <<- paste0("image.", a, ".uninfect.stat.sum")
-#                     colNames[l+2] <<- paste0("image.", a, ".uninfect.stat.mean")
-#                     colNames[l+3] <<- paste0("image.", a, ".infect.stat.sum")
-#                     colNames[l+4] <<- paste0("image.", a, ".infect.stat.mean")
-#                     
-#                     colMean[m+1] <<- paste0("image.", a, ".stat.mean")
-#                     colMean[m+2] <<- paste0("image.", a, ".YFV.mean")
-#                     
-#                     colSum[s+1] <<- paste0("image.", a, ".stat.sum")                    
-#                     colSum[s+2] <<- paste0("image.", a, ".YFV.sum")
-#                     
-#                     colArea[z+1] <<- paste0("image.", a, ".cell.pixel.area")
-#                     colArea[z+2] <<- paste0("image.", a, ".stat.per.area")
-#                     colArea[z+3] <<- paste0("image.", a, ".yfv.per.area")
-#                     
-#                     
-#           }
-#           
-#           colnames(expressionInfected) <<- colNames
-#           colnames(expressionMeans) <<- colMean
-#           colnames(expressionSums) <<- colSum
-#           colnames(expressionArea) <<- colArea
-#           
-#           expressionInfected <<- as.data.frame(expressionInfected)
-#           expressionMeans <<- as.data.frame(expressionMeans)
-#           expressionSums <<- as.data.frame(expressionSums)
-#           expressionArea <<- as.data.frame(expressionArea)
-          
-
-
-
           ## Option for Hi pass filter prior to intensity acquisition from selection (default=FALSE)
           if(hipassQuant == TRUE){
                     n <- dim(selectionimagesbw)[4]
@@ -476,6 +433,8 @@ for(u in 1:imgeNum){
           
           for(i in 1:cellNum){
                     cellLocation <- cmask[,,,u] == i
+                    whole <- wholecellimagebw[,,,u][cellLocation]
+                    select <- selectionimagesbw[,,,u][cellLocation]
                     
                     imageDat$imagenum[r] <<- u
                     imageDat$treatment[r] <<- "NA"
@@ -490,13 +449,11 @@ for(u in 1:imgeNum){
                               imageDat$infected[r] <<- "positive"
                     }
                     
-                    imageDat$stat.mean[r] <<-  mean(wholecellimagebw[,,,u][cellLocation])
-                    imageDat$stat.sum[r] <<- sum(wholecellimagebw[,,,u][cellLocation])
-                    imageDat$yfv.mean[r] <<- mean(selectionimagesbw[,,,u][cellLocation])
-                    imageDat$yfv.sum[r] <<- sum(selectionimagesbw[,,,u][cellLocation])
+                    imageDat$stat.mean[r] <<-  mean(whole)
+                    imageDat$stat.sum[r] <<- sum(whole)
+                    imageDat$yfv.mean[r] <<- mean(select)
+                    imageDat$yfv.sum[r] <<- sum(select)
                     imageDat$cell.pixel.area[r] <<- sum(cellLocation)
-                    imageDat$stat.per.area[r] <<- imageDat$stat.sum[r] / imageDat$cell.pixel.area
-                    imageDat$yfv.per.area[r] <<- imageDat$yfv.sum[r] / imageDat$cell.pixel.area
                     
                     r <- r+1
 
@@ -508,48 +465,9 @@ imageDat$treatment <<- as.factor(imageDat$treatment)
 imageDat$infected <<- as.factor(imageDat$infected)
 
 write.csv(imageDat, "imageDat.csv")
-
-
-# expressionInfectedSummary <- matrix(ncol=imageCol, nrow=3)
-# row.names(expressionInfectedSummary) <- c("number.of.cells", "average", "standard.deviation")
-# colnames(expressionInfectedSummary) <- colNames
-# 
-# for(i in 1:imageCol){
-#           
-#           number <- sum(!is.na(expressionInfected[,i]))
-#           average <- mean(expressionInfected[,i], na.rm=TRUE)
-#           stddev <- sd(expressionInfected[,i], na.rm=TRUE)
-#           
-#           expressionInfectedSummary[1,i] <- number
-#           expressionInfectedSummary[2,i] <- average
-#           expressionInfectedSummary[3,i] <- stddev
-#           
-# }
-# 
-# write.csv(expressionInfectedSummary, "expressionInfectedSummary.csv")
-
 }
 
-# exportIndCells <- function(...){
-#           
-#           colNam <<- colnames(expressionInfected)
-#           meansValues <<- colNam[grepl(pattern="mean", colNam, ignore.case=TRUE)]
-#           l <<- length(meansValues)
-#           r <<- nrow(expressionInfected)
-#           organizedInfected <<- matrix(ncol=l, nrow=r)
-#           colnames(organizedInfected) <<- colnames(expressionInfected[meansValues])
-#           for(i in 1:l){
-#                     
-#                     wanted <<- !is.na(expressionInfected[,meansValues[i]])
-#                     wanted <<- expressionInfected[wanted, meansValues[i]]
-#                     wantedLength <- length(wanted)
-#                     for(a in 1:wantedLength){
-#                               
-#                               organizedInfected[a,i] <<- wanted[a]
-#                     }
-#                     write.csv(organizedInfected, "organizedInfected.csv")
-#           }
-# }
+
 
 
 ######################################################################################################
@@ -563,58 +481,12 @@ loadDataFiles <- function(...){
           if(file.exists("cell.csv") == TRUE){
                     cell <<- read.csv("cell.csv", row.names=1)
           }
-          
-          if(file.exists("expressionInfected.csv") == TRUE){
-                    expressionInfected <<- read.csv("expressionInfected.csv", row.names=1)
-          }
-          if(file.exists("expressionInfectedSummary.csv") == TRUE){
-                    expressionInfectedSummary <<- read.csv("expressionInfectedSummary.csv", row.names=1)
-          }
-          if(file.exists("expressionMeans.csv") == TRUE){
-                    expressionMeans <<- read.csv("expressionMeans.csv", row.names=1)
-          }
-          if(file.exists("expressionSums.csv") == TRUE){
-                    expressionSums <<- read.csv("expressionSums.csv", row.names=1)
-          }
-          if(file.exists("forPlot.csv") == TRUE){
-                    forPlot <<- read.csv("forPlot.csv", row.names=1)
-          }
-          if(file.exists("forPlot2.csv") == TRUE){
-                    forPlot2 <<- read.csv("forPlot2.csv", row.names=1)
-          }
-          if(file.exists("organizedInfected.csv") == TRUE){
-                    organizedInfected <<- read.csv("organizedInfected.csv", row.names=1)
-          }
           if(file.exists("report.csv") == TRUE){
                     report <<- read.csv("report.csv", row.names=1)
           }
+          if(file.exists("imageDat.csv") == TRUE){
+                    imageDat <<- read.csv("imageDat.csv", row.names=1, 
+                                          colClasses=c("factor", "factor", "integer", "factor", "numeric", "numeric", 
+                                                       "numeric", "numeric", "integer"))
+          }
 }
-
-
-# #######################################################################################################################
-# ## Places all values for expressionMeans into single columns for easy plotting.  Each cell is identified by the      ##
-# ## image that it was obtained from, whether it was consider to be infected and the pixel intensities of stat and YFV ##
-# #######################################################################################################################
-# 
-# organizeForPlot <- function(...){
-#           
-#           forPlot <<- data.frame(imagenum=0, infected=0, stat=0, yfv=0, stringsAsFactors=FALSE)
-#           
-#           imageNum <- ncol(cell)
-#           
-#           n <- 1
-#           for(i in 1:imageNum){
-#                     
-#                     cellNum <- sum(!is.na(cell[,i]))
-#                     
-#                     for(p in 1:cellNum){
-#                               forPlot[n, 1] <<- i
-#                               forPlot[n, 2] <<- cell[p, i]
-#                               forPlot[n, 3] <<- expressionMeans[p,(i*2)-1]
-#                               forPlot[n, 4] <<- expressionMeans[p, (i*2)]
-#                               n <- n+1
-#                     }
-#           }
-#           
-#           write.csv(forPlot, "forPlot.csv")
-# }

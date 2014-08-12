@@ -1,0 +1,5 @@
+All default options are optimized for these images.  The following function call will initiate a complete processing of the practice images as long as the working directory is "Practice Images".
+
+
+
+loadImages(fullMonty=TRUE, writeimage=TRUE, writereport=TRUE)
