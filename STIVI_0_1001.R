@@ -1,5 +1,5 @@
 ################################################################
-##  STEVI (STat Expression with Virus Infection) Ver: 0.1001  ##
+##  STIVI (STat Expression with Virus Infection) Ver: 0.1001  ##
 ##  2014-08-12 AMW                                            ##
 ################################################################
 
@@ -7,8 +7,6 @@
 loadImages <- function(fullMonty = FALSE, count=FALSE, outline=FALSE, colocalization=FALSE, overlay=FALSE, ...){
           
           require("EBImage")
-          require("foreach")
-          require("doParallel")
           
           imagedir <<- list.dirs(full.names=FALSE, recursive=FALSE)
           #imagedir <<- list.files()
@@ -42,9 +40,9 @@ loadImages <- function(fullMonty = FALSE, count=FALSE, outline=FALSE, colocaliza
           quant <- system.time(statQuant(...))
           print(quant)
           
-          #           exportIndCells(...)
-          #           
-          #           organizeForPlot(...)
+#           exportIndCells(...)
+#           
+#           organizeForPlot(...)
           
 }         
 
@@ -147,7 +145,7 @@ countnucleus <- function(threshold = 0.2, brush = 5, hipass = FALSE, writeimage=
           nuccountlow <<- nucimagesthreshold
           kern <- makeBrush(brush, shape="disc")
           
-          
+                    
           for(i in 1:n){
                     nuccountlow[,,,i] <<- dilate(erode(nuccountlow[,,,i], kern), kern)
           }
@@ -170,8 +168,8 @@ countnucleus <- function(threshold = 0.2, brush = 5, hipass = FALSE, writeimage=
                     report[i,3] <<- max(nuccounthi[,,,i])
                     if(writeimage == TRUE) {report[i,4] <<- paste0("count_", basename(imagefiles[location[[i]]]),"_low.tif")}
                     if(writeimage == TRUE) {report[i,5] <<- paste0("count_", basename(imagefiles[location[[i]]]),"_hi.tif")}
-                    
-                    
+                                                                  
+                                                                  
           }
           if(writereport == TRUE) write.csv(report, file="report.csv")
           print(report)
@@ -276,7 +274,7 @@ outlinecells <- function(wholecell="STAT", wholethresh = .25, writeimage=FALSE, 
                     counts <- cbind(counts, report)
                     write.csv(counts, file="report.csv")
           } 
-          
+                  
 }
 
 colocalization <- function(selection="YFV", wholecell="STAT", colocBrush = 25, colocThresh = 0.75, writeimage=FALSE, writereport=FALSE, ...){
@@ -367,7 +365,7 @@ colocalization <- function(selection="YFV", wholecell="STAT", colocBrush = 25, c
           }
           
           write.csv(cell, file="cell.csv")
-          
+
           
 }
 
@@ -407,12 +405,12 @@ statQuant <- function(hipassQuant = FALSE, ...){
           ###  Create the Data.Frame that will store all data
           
           
-          #           totalCell <- sum(cell != "NA", na.rm = TRUE)
-          #           imageDat <<- matrix(nrow = totalCell, ncol = 9)
-          #           imageDatColNames <- c("imagenum", "treatment", "cell.number", "infected", "stat.mean", "stat.sum", "yfv.mean", 
-          #                                  "yfv.sum", "cell.pixel.area")
-          #           colnames(imageDat) <<- imageDatColNames
-          #           imageDat <<- as.data.frame(imageDat)
+          totalCell <- sum(cell != "NA", na.rm = TRUE)
+          imageDat <<- matrix(nrow = totalCell, ncol = 9)
+          imageDatColNames <- c("imagenum", "treatment", "cell.number", "infected", "stat.mean", "stat.sum", "yfv.mean", 
+                                 "yfv.sum", "cell.pixel.area")
+          colnames(imageDat) <<- imageDatColNames
+          imageDat <<- as.data.frame(imageDat)
           imgeNum <- ncol(cell)
           
           
@@ -426,94 +424,47 @@ statQuant <- function(hipassQuant = FALSE, ...){
                               selectionimagesbw[,,,i] <<- filter2(selectionimagesbw[,,,i], fhi)
                     }
           }
-          
-          
-          ## Code for multicore processing of image data
-          ## Set the number of core to be used - at least 1 per image
-          cores <- detectCores(logical=TRUE)          
-          cl <<- makeCluster(cores)
-          registerDoParallel(cl)
-          
-          
-          cell <- cell
-          wholecellimagebw <- wholecellimagebw
-          selectionimagesbw <- selectionimagesbw
-          cmask <- cmask
-          
-          imageDat <<- matrix(nrow=1, ncol=2)
-          
-          for(u in 1:imgeNum){
                     
+
+r <- 1
+for(u in 1:imgeNum){
+          
+          cellNum <- sum(!is.na(cell[,u]))
+          
+          for(i in 1:cellNum){
+                    cellLocation <- cmask[,,,u] == i
+                    whole <- wholecellimagebw[,,,u][cellLocation]
+                    select <- selectionimagesbw[,,,u][cellLocation]
                     
-                    cellNum <- sum(!is.na(cell[,u]))
+                    imageDat$imagenum[r] <<- u
+                    imageDat$treatment[r] <<- "NA"
+                    imageDat$cell.number[r] <<- i
                     
-                    
-                    
-                    dataList <<- foreach(i = 1:cellNum) %dopar% {
+                    if(cell[i, u] == 0){
                               
-                              tmp <- matrix(nrow = 1, ncol = 9)
-                              imageDatColNames <- c("imagenum", "treatment", "cell.number", "infected", "stat.mean", "stat.sum", "yfv.mean", 
-                                                    "yfv.sum", "cell.pixel.area")
-                              colnames(tmp) <- imageDatColNames
-                              tmp <- as.data.frame(tmp)
+                              imageDat$infected[r] <<- "negative"
+                    }
+                    else if(cell[i, u] == 1){
                               
-                              cellLocation <- cmask[,,,u] == i
-                              whole <- wholecellimagebw[,,,u][cellLocation]
-                              select <- selectionimagesbw[,,,u][cellLocation]
-                              
-                              tmp$imagenum[1] <- u
-                              tmp$treatment[1] <- "NA"
-                              tmp$cell.number[1] <- i
-                              
-                              if(cell[i, u] == 0){
-                                        
-                                        tmp$infected[1] <- "negative"
-                              }
-                              else if(cell[i, u] == 1){
-                                        
-                                        tmp$infected[1] <- "positive"
-                              }
-                              
-                              tmp$stat.mean[1] <-  mean(whole)
-                              tmp$stat.sum[1] <- sum(whole)
-                              tmp$yfv.mean[1] <- mean(select)
-                              tmp$yfv.sum[1] <- sum(select)
-                              tmp$cell.pixel.area[1] <- sum(cellLocation)
-                              
-                              print(tmp)
-                              
+                              imageDat$infected[r] <<- "positive"
                     }
                     
-                    if(is.matrix(imageDat) == TRUE){
-                              imageDat <- dataList[[1]]
-                              for(m in 2:cellNum){
-                                        imageDat <- rbind(imageDat, dataList[[m]])
-                              }
-                    }
-                    else{
-                              for(m in 1:cellNum){
-                                        imageDat <- rbind(imageDat, dataList[[m]])
-                              } 
-                    }
+                    imageDat$stat.mean[r] <<-  mean(whole)
+                    imageDat$stat.sum[r] <<- sum(whole)
+                    imageDat$yfv.mean[r] <<- mean(select)
+                    imageDat$yfv.sum[r] <<- sum(select)
+                    imageDat$cell.pixel.area[r] <<- sum(cellLocation)
                     
-                    
-                    
-          }
-          stopCluster(cl)
-          imageDat <<- imageDat
-          rm(imageDat)
-          rm(cell)
-          rm(wholecellimagebw)
-          rm(selectionimagesbw)
-          rm(cmask)
-          
-          
-          
-          imageDat$imagenum <<- as.factor(imageDat$imagenum)
-          imageDat$treatment <<- as.factor(imageDat$treatment)
-          imageDat$infected <<- as.factor(imageDat$infected)
-          
-          write.csv(imageDat, "imageDat.csv")
+                    r <- r+1
+
+          }   
+}
+
+imageDat$imagenum <<- as.factor(imageDat$imagenum)
+imageDat$treatment <<- as.factor(imageDat$treatment)
+imageDat$infected <<- as.factor(imageDat$infected)
+
+write.csv(imageDat, "imageDat.csv")
 }
 
 
