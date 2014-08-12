@@ -1,7 +1,7 @@
-################################################################
-##  STEVI (STat Expression with Virus Infection) Ver: 0.1001  ##
-##  2014-08-12 AMW                                            ##
-################################################################
+#################################################################
+##  STEVI (STat Expression with Virus Infection) Ver: 0.1001   ##
+##  2014-08-12 AMW                                             ##
+#################################################################
 
 
 loadImages <- function(fullMonty = FALSE, count=FALSE, outline=FALSE, colocalization=FALSE, overlay=FALSE, ...){

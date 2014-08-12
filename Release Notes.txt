@@ -19,7 +19,7 @@ Change log:
 
 	C. - Future releases will provide a single script in which the number of processing cores can be specified prior to running the analysis.
 
-	D. - Future releases will include multicore processing of colocalization().
+	D. - Future releases will include multicore processing of determination of infection in the colocalization() function.
 
 -------------------------------------------------------------------------------------------------------------------
 
