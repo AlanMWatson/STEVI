@@ -1,6 +1,32 @@
 Release Notes for STEVI: STat Expression with Virus Infection
 
 
+
+Version: 0.1003
+Filename - STEVI_0_1003.R
+Filename - STEVI_0_1003_multicore.R
+
+Change log:
+
+1).	loadDataFiles() was updated to fix a bug.  stringsAsFactors is set to TRUE in when  to facilitate ease of data plotting.  However, observations like imagenum and treatment will have to be manually converted to factors if this is desired.
+
+2).  	A. - The multicore version has been updated to process colocalization() and statQuant() with the maximal number of logical processors available to the computer.  This can cut the processing time for the script by as much as 25x.  This addresses goal 4C of the change log for Version: 0.1001
+
+	B. - BE CAREFUL:  This will utilize large amounts of RAM which scales with the number of logical processors that your computer has available.  I have tested it for up to 9 image sets and 9 cores (each image was the size of the practice images that are supplied with the distribution).  9 images processed on 9 cores uses as much as 15GB of RAM.  
+
+	
+Future goals:
+
+1).  Future releases will provide a single script in which the number of processing cores can be specified prior to running the analysis or multicore processing can be selectively turned off.
+
+2).  RAM management for machines with limited resources.
+
+3).  Method to optionally specify the the cell type, treatment and gene being observed in each image prior to each run in orfer to automatically incorporate those parameters into imageDat.csv.  This will facilitate meaningful analysis of data.
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+
 Version: 0.1001
 Filename - STEVI_0_1001.R
 Filename - STEVI_0_1001_multicore.R
